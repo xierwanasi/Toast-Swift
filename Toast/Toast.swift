@@ -414,6 +414,13 @@ public extension UIView {
      @return The newly created toast view
     */
     func toastViewForMessage(_ message: String?, title: String?, image: UIImage?, backgroudImage: UIImage?, style: ToastStyle) throws -> UIView {
+        
+        var backgroudImage = backgroudImage
+        
+        if backgroudImage == nil {
+            backgroudImage = ToastManager.shared.style.backgroupImage
+        }
+        
         // sanity
         guard message != nil || title != nil || image != nil else {
             throw ToastError.missingParameters
@@ -702,6 +709,8 @@ public struct ToastStyle {
      Activity background color. Default is `.black` at 80% opacity.
      */
     public var activityBackgroundColor: UIColor = UIColor.black.withAlphaComponent(0.8)
+    
+    public var backgroupImage: UIImage?
     
 }
 
