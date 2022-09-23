@@ -39,6 +39,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UINavigationBar.appearance().barTintColor = .lightBlue
         UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         
+        ToastManager.shared.duration = 1
+        var style = ToastStyle()
+        style.fadeDuration = 1
+        style.offset = 100
+        ToastManager.shared.style = style
         return true
     }
 }

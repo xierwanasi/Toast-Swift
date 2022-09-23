@@ -168,7 +168,7 @@ extension ViewController {
              self.navigationController?.view.makeToast("This is a piece of toast")
         case 1:
             // Make toast with a duration and position
-            self.navigationController?.view.makeToast("This is a piece of toast on top for 3 seconds", duration: 3.0, position: .top)
+            self.navigationController?.view.makeToast("This is a piece of toast on top for 3 seconds", duration: 0.5, position: .top, backgroudImage: UIImage(named: "navi_pic_bg"))
         case 2:
             // Make toast with a title
             self.navigationController?.view.makeToast("This is a piece of toast with a title", duration: 2.0, position: .top, title: "Toast Title", image: nil)

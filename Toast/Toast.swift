@@ -106,9 +106,9 @@ public extension UIView {
      @param completion The completion closure, executed after the toast view disappears.
             didTap will be `true` if the toast view was dismissed from a tap.
      */
-    func makeToast(_ message: String?, duration: TimeInterval = ToastManager.shared.duration, position: ToastPosition = ToastManager.shared.position, title: String? = nil, image: UIImage? = nil, style: ToastStyle = ToastManager.shared.style, completion: ((_ didTap: Bool) -> Void)? = nil) {
+    func makeToast(_ message: String?, duration: TimeInterval = ToastManager.shared.duration, position: ToastPosition = ToastManager.shared.position, title: String? = nil, image: UIImage? = nil, backgroudImage: UIImage? = nil, style: ToastStyle = ToastManager.shared.style, completion: ((_ didTap: Bool) -> Void)? = nil) {
         do {
-            let toast = try toastViewForMessage(message, title: title, image: image, style: style)
+            let toast = try toastViewForMessage(message, title: title, image: image, backgroudImage: backgroudImage ,style: style)
             showToast(toast, duration: duration, position: position, completion: completion)
         } catch ToastError.missingParameters {
             print("Error: message, title, and image are all nil")
@@ -127,9 +127,9 @@ public extension UIView {
      @param completion The completion closure, executed after the toast view disappears.
             didTap will be `true` if the toast view was dismissed from a tap.
      */
-    func makeToast(_ message: String?, duration: TimeInterval = ToastManager.shared.duration, point: CGPoint, title: String?, image: UIImage?, style: ToastStyle = ToastManager.shared.style, completion: ((_ didTap: Bool) -> Void)?) {
+    func makeToast(_ message: String?, duration: TimeInterval = ToastManager.shared.duration, point: CGPoint, title: String?, image: UIImage?, backgroudImage: UIImage? = nil, style: ToastStyle = ToastManager.shared.style, completion: ((_ didTap: Bool) -> Void)?) {
         do {
-            let toast = try toastViewForMessage(message, title: title, image: image, style: style)
+            let toast = try toastViewForMessage(message, title: title, image: image, backgroudImage: backgroudImage, style: style)
             showToast(toast, duration: duration, point: point, completion: completion)
         } catch ToastError.missingParameters {
             print("Error: message, title, and image cannot all be nil")
@@ -358,12 +358,14 @@ public extension UIView {
     }
     
     private func hideToast(_ toast: UIView, fromTap: Bool) {
+        let point = toast.center
         if let timer = objc_getAssociatedObject(toast, &ToastKeys.timer) as? Timer {
             timer.invalidate()
         }
         
         UIView.animate(withDuration: ToastManager.shared.style.fadeDuration, delay: 0.0, options: [.curveEaseIn, .beginFromCurrentState], animations: {
             toast.alpha = 0.0
+            toast.center = CGPoint(x: point.x, y: point.y - ToastManager.shared.style.offset)
         }) { _ in
             toast.removeFromSuperview()
             self.activeToasts.remove(toast)
@@ -411,7 +413,7 @@ public extension UIView {
      @throws `ToastError.missingParameters` when message, title, and image are all nil
      @return The newly created toast view
     */
-    func toastViewForMessage(_ message: String?, title: String?, image: UIImage?, style: ToastStyle) throws -> UIView {
+    func toastViewForMessage(_ message: String?, title: String?, image: UIImage?, backgroudImage: UIImage?, style: ToastStyle) throws -> UIView {
         // sanity
         guard message != nil || title != nil || image != nil else {
             throw ToastError.missingParameters
@@ -420,6 +422,7 @@ public extension UIView {
         var messageLabel: UILabel?
         var titleLabel: UILabel?
         var imageView: UIImageView?
+        var backgroudImageView: UIImageView?
         
         let wrapperView = UIView()
         wrapperView.backgroundColor = style.backgroundColor
@@ -446,6 +449,11 @@ public extension UIView {
             imageRect.origin.y = style.verticalPadding
             imageRect.size.width = imageView.bounds.size.width
             imageRect.size.height = imageView.bounds.size.height
+        }
+        
+        if let backgroudImage = backgroudImage {
+            backgroudImageView = UIImageView(image: backgroudImage)
+            backgroudImageView?.contentMode = .scaleToFill
         }
 
         if let title = title {
@@ -508,6 +516,11 @@ public extension UIView {
         let wrapperHeight = max((messageRect.origin.y + messageRect.size.height + style.verticalPadding), (imageRect.size.height + (style.verticalPadding * 2.0)))
         
         wrapperView.frame = CGRect(x: 0.0, y: 0.0, width: wrapperWidth, height: wrapperHeight)
+        
+        if let backgroudImageView = backgroudImageView {
+            backgroudImageView.frame = wrapperView.bounds
+            wrapperView.addSubview(backgroudImageView)
+        }
         
         if let titleLabel = titleLabel {
             titleRect.size.width = longerWidth
@@ -580,6 +593,8 @@ public struct ToastStyle {
             maxHeightPercentage = max(min(maxHeightPercentage, 1.0), 0.0)
         }
     }
+    
+    public var offset: CGFloat = 40
     
     /**
      The spacing from the horizontal edge of the toast view to the content. When an image
